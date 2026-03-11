@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>솔에딧 구축</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f7f5f0;
+            color: #2d3748;
+            overflow-x: hidden;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-item.active {
+            background-color: #0f766e;
+            color: white;
+            border-left: 4px solid #5eead4;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="antialiased h-screen flex overflow-hidden">
+
+<!-- Sidebar Navigation -->
+<aside class="w-64 bg-slate-800 text-slate-300 flex flex-col h-full shrink-0 shadow-xl z-20 overflow-y-auto">
+    <div class="p-6 text-white font-bold text-2xl tracking-wide border-b border-slate-700">
+        <span class="text-teal-400">Sol</span>Edit <span class="text-sm font-normal text-slate-400 block mt-1">Migration Project</span>
+    </div>
+    <nav class="flex-1 py-4 flex flex-col gap-1 px-3" id="sidebar-nav">
+        <button onclick="navigate('sec-overview')" class="nav-item active text-left px-4 py-3 rounded-md hover:bg-slate-700 hover:text-white transition-colors">1. 프로젝트</button>
+        <button onclick="navigate('sec-roles')" class="nav-item text-left px-4 py-3 rounded-md hover:bg-slate-700 hover:text-white transition-colors">2. 진행된 기능 목록</button>
+        <button onclick="navigate('sec-compare')" class="nav-item text-left px-4 py-3 rounded-md hover:bg-slate-700 hover:text-white transition-colors">3. UI 화면</button>
+        <div class="mt-4 mb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">구현 기능</div>
+        <button onclick="navigate('sec-cat1')" class="nav-item text-left px-4 py-3 rounded-md hover:bg-slate-700 hover:text-white transition-colors pl-8">1_보행자</button>
+        <button onclick="navigate('sec-cat2')" class="nav-item text-left px-4 py-3 rounded-md hover:bg-slate-700 hover:text-white transition-colors pl-8">2_도로</button>
+        <button onclick="navigate('sec-cat4')" class="nav-item text-left px-4 py-3 rounded-md hover:bg-slate-700 hover:text-white transition-colors pl-8">4_랜더링 (시설물)</button>
+        <button onclick="navigate('sec-cat5')" class="nav-item text-left px-4 py-3 rounded-md hover:bg-slate-700 hover:text-white transition-colors pl-8">5_배경 (GIS 편집)</button>
+<!--        <button onclick="navigate('sec-cat6')" class="nav-item text-left px-4 py-3 rounded-md hover:bg-slate-700 hover:text-white transition-colors pl-8">6_교통정보</button>-->
+<!--        <div class="mt-4 mb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">기술 및 아키텍처</div>-->
+<!--        <button onclick="navigate('sec-arch')" class="nav-item text-left px-4 py-3 rounded-md hover:bg-slate-700 hover:text-white transition-colors">8. 시스템 아키텍처</button>-->
+<!--        <button onclick="navigate('sec-risk')" class="nav-item text-left px-4 py-3 rounded-md hover:bg-slate-700 hover:text-white transition-colors">9. 리스크 분석</button>-->
+    </nav>
+</aside>
+
+<!-- Main Content Area -->
+<main class="flex-1 h-full overflow-y-auto relative p-6 md:p-10 scroll-smooth">
+
+    <!-- SECTION 1: Overview -->
+    <section id="sec-overview" class="content-section fade-in block">
+        <header class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800 mb-2">1. 프로젝트</h1>
+            <p class="text-lg text-slate-600">코코넛(C++)의 레거시 기능을 솔에딧(Web)으로 이식하여 지도 편집 시스템을 구축합니다.</p>
+        </header>
+
+        <!-- Project Description Cards -->
+        <div class="grid md:grid-cols-1 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <ul class="text-sm text-slate-700 grid md:grid-cols-4 gap-2">
+                    <li><strong class="text-slate-900 block">보행자 네트워크 데이터 정밀화</strong></li>
+                    <li><strong class="text-slate-900 block">도로 기하 구조 및 속성 관리</strong></li>
+                    <li><strong class="text-slate-900 block">안내용 시각 자원 생성</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm mb-6">
+            <h3 class="font-bold text-xl text-slate-800 mb-4 border-b pb-2">주요 객체 정보</h3>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                    <h4 class="font-bold text-lg text-indigo-700 mb-2 flex items-center gap-2"><span class="text-2xl">📍</span> 노드 (도로, 보행자에 적용)</h4>
+                    <ul class="list-disc list-inside text-sm text-slate-700 space-y-1">
+                        <li><strong>속성:</strong> 노드 ID, 연결 Link 개수, 신호등, DB Type 등</li>
+                        <li><strong>종별:</strong> 도로 교차점, 속성 변환점, 도로 종료점 등</li>
+                        <li><strong>하이웨이:</strong> 톨게이트 종류, 입출구, 발권, 정산, 도로/시설 시종점, IC 명칭 안내</li>
+                    </ul>
+                </div>
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                    <h4 class="font-bold text-lg text-emerald-700 mb-2 flex items-center gap-2"><span class="text-2xl">🛣️</span> 링크 (도로, 보행자에 적용)</h4>
+                    <ul class="list-disc list-inside text-sm text-slate-700 space-y-1">
+                        <li><strong>시설물 (18종):</strong> 횡단보도, 육교, 지하보도, 교량, 지하상가, 토끼굴, 지하철 등</li>
+                        <li><strong>단지 정보:</strong> 공원, 학교, 광장, 주거 등 속성 매핑</li>
+                        <li><strong>상태/환경:</strong> 유료 여부, 공사 여부, 통행 환경 등</li>
+                    </ul>
+                </div>
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                    <h4 class="font-bold text-lg text-amber-700 mb-2 flex items-center gap-2"><span class="text-2xl">🪢</span> 폴리라인 &<span class="text-2xl"> 🔳</span> 폴리곤</h4>
+                    <ul class="list-disc list-inside text-sm text-slate-700 space-y-1">
+                        <li><strong>폴리라인 종별:</strong> 임시, 도로, 건물, 수계, 철도, 지하철, 고속철도, 녹지, 행정계, WebGIS</li>
+                        <li><strong>폴리곤 종별:</strong> 임시, 도로, 건물, 수계, 철도, 지하철, 고속철도, 단지, 녹지, 등고선, 국가, 택지개발지구, WebGIS</li>
+                        <li><strong>3D 매칭 정보:</strong> 약 1,500개의 3D 매칭 정보 존재</li>
+                    </ul>
+                </div>
+
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
+                    <h4 class="font-bold text-lg text-blue-700 mb-2 flex items-center gap-2">기타</h4>
+<!--                    <p class="text-sm text-slate-600 mb-3">시작점과 끝점이 일치하여 닫혀 있는 면 형태의 객체, 영역과 범위를 정의</p>-->
+                    <ul class="list-disc list-inside text-sm text-slate-700 space-y-1">
+                        <li><strong>교통정보</strong></li>
+                        <li><strong>NRG</strong></li>
+                        <li><strong>상용차</strong></li>
+                        <li><strong>CCTV</strong></li>
+                        <li><strong>공공데이터(도로명)</strong></li>
+                        <li><strong>행정계</strong></li>
+                        <li><strong>유고정보</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h4 class="font-bold text-xl text-slate-800 mb-3">객체 생성/수정 방식</h4>
+                <p class="text-slate-600 mb-2">다음 2가지 방식을 모두 지원</p>
+                <ul class="space-y-2 text-slate-700">
+                    <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-teal-500"></span> <strong>직접 드로잉:</strong> 지도 위 마우스 클릭/드래그</li>
+                    <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-teal-500"></span> <strong>좌표 입력:</strong> 수동 좌표 직접 입력</li>
+                </ul>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h4 class="font-bold text-xl text-slate-800 mb-3">적용 좌표계 (전역 공통)</h4>
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <p class="text-sm font-bold text-teal-700 mb-1">고유 GRS 좌표계 &rarr; EPSG:3857</p>
+                    <p class="text-sm text-slate-600">모든 공간정보는 DB에 <strong>고유 GRS 좌표계</strong>를 사용하여 저장되며, 로딩하여 화면(OL)에 표출할 때 <strong>EPSG:3857</strong> 포맷으로 동적 변환하여 사용합니다.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h4 class="font-bold text-xl text-slate-800 mb-3">객체 메모</h4>
+                <p class="text-slate-600 mb-2">각 객체에 대해 메모 작성이 가능</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h4 class="font-bold text-xl text-slate-800 mb-3">DB 작업</h4>
+                <p class="text-slate-600 mb-2">DB 호출 및 CRUD 작업은 대부분 저장 프로시저(Stored Procedure, 예: <code>GP_RTN_COMMON_CROSS_SAVE</code>)를 활용하여 처리됩니다.</p>
+            </div>
+        </div>
+
+<!--        <h2 class="text-2xl font-bold text-slate-800 mb-6 border-b-2 border-teal-500 inline-block pb-1">기술 스택</h2>-->
+<!--        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-8 flex flex-col md:flex-row items-center gap-8">-->
+<!--            <div class="w-full md:w-1/2">-->
+<!--                <div class="chart-container">-->
+<!--                    <canvas id="techStackChart"></canvas>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            <div class="w-full md:w-1/2 space-y-4">-->
+<!--                <div class="p-4 rounded-xl bg-teal-50 border-l-4 border-teal-500">-->
+<!--                    <h3 class="font-bold text-teal-800 text-lg">Frontend (React & OpenLayers)</h3>-->
+<!--                    <p class="text-sm text-teal-700 mt-1">Ant Design을 활용한 직관적인 UI 및 OpenLayers 기반의 복잡한 GIS 렌더링을 담당합니다.</p>-->
+<!--                </div>-->
+<!--                <div class="p-4 rounded-xl bg-blue-50 border-l-4 border-blue-500">-->
+<!--                    <h3 class="font-bold text-blue-800 text-lg">Backend (Spring Boot)</h3>-->
+<!--                    <p class="text-sm text-blue-700 mt-1">REST API 설계, 대용량 데이터 처리 및 공간 연산 무결성 검증을 담당합니다.<br /><br /><strong>DB 작업:</strong> DB 호출 및 CRUD 작업은 대부분 저장 프로시저(Stored Procedure, 예: <code>GP_RTN_COMMON_CROSS_SAVE</code>)를 활용하여 처리됩니다.</p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+    </section>
+
+    <!-- SECTION 2: Roles (Division of Labor) -->
+    <section id="sec-roles" class="content-section fade-in hidden">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">2. 진행된 기능 목록</h1>
+        </header>
+        <div class="grid grid-cols-1 gap-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-teal-200 p-8 relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-teal-500 text-white px-3 py-1 text-sm font-bold rounded-bl-lg">당사 개발 범위</div>
+                <h2 class="text-2xl font-bold text-teal-800 mb-4">솔에딧 코어 및 5개 카테고리</h2>
+                <ul class="space-y-3 text-slate-700 mb-8">
+                    <li class="flex items-center gap-2"><span class="text-teal-500 font-bold">&#10003;</span> 프론트엔드/백엔드 기본 아키텍처 구축</li>
+                    <li class="flex items-center gap-2"><span class="text-teal-500 font-bold">&#10003;</span> 1_보행자, 2_도로, 4_랜더링, 5_배경, 6_교통정보</li>
+                </ul>
+
+                <!-- 세부 구현 기능 명세 표 -->
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <span class="text-teal-600">📋</span> 상세 구현 기능 명세
+                    </h3>
+                    <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-4 font-bold text-slate-700 w-1/4">카테고리</th>
+                                <th class="px-6 py-4 font-bold text-slate-700 w-3/4">구현 상세 기능</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 bg-white">
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-slate-800 bg-slate-50/30 align-top">분류 외</td>
+                                <td class="px-6 py-4">
+                                    <ul class="list-disc list-inside text-sm text-slate-700 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-1">
+                                        <li>보행자, 등산로 편집 기능</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-slate-800 bg-slate-50/30 align-top">2_도로</td>
+                                <td class="px-6 py-4">
+                                    <ul class="list-disc list-inside text-sm text-slate-700 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-1">
+                                        <li>코스도로 리스트 표출</li>
+                                        <li>신규 코스도로 생성</li>
+                                        <li>기존 코스도로 수정</li>
+                                        <li>기존 코스도로 반대 코스 생성</li>
+                                        <li>코스 경로 입력/수정/삭제</li>
+                                        <li>코스 경로 연결성 확인</li>
+                                        <li>코스 경로 SEQ 재정렬</li>
+                                        <li>코스 경로 표출</li>
+                                        <li>코스도로 해시태그 관리</li>
+                                        <li>보간점 객체 생성/선택</li>
+                                        <li>보간점 수동 좌표 입력 변경</li>
+                                        <li>레이싱서킷편집</li>
+                                        <li>전 방향 좌회전 불가</li>
+                                        <li>통행규제</li>
+                                        <li>통행가능</li>
+                                        <li>회전규제 자동설정</li>
+                                        <li>형상 복사</li>
+                                        <li>멀티 속성</li>
+                                        <li>대표(복합) 삭제</li>
+                                        <li>노선정보 보기</li>
+                                        <li>멀티라인 생성</li>
+                                        <li>레인 정보 표시/편집</li>
+                                        <li>도로배경 생성</li>
+                                        <li>NRG불러오기</li>
+                                        <li>서버기반 PSD 이미지 관리</li>
+                                        <li>복합레인 입력</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-slate-800 bg-slate-50/30 align-top">4_랜더링</td>
+                                <td class="px-6 py-4">
+                                    <ul class="list-disc list-inside text-sm text-slate-700 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-1">
+                                        <li class="col-span-1 md:col-span-2 lg:col-span-3 font-semibold text-slate-900 mt-2 mb-1 border-b border-slate-100 pb-1">통합분기 관리 (9종 통합 화면)</li>
+                                        <li>일반 교차로 ILS</li>
+                                        <li>JC ILS</li>
+                                        <li>일반도로 고속분기</li>
+                                        <li>일반도로 연속분기</li>
+                                        <li>혼합 분기 ILS</li>
+                                        <li>고속 분기 모식도</li>
+                                        <li>3D 교차로</li>
+                                        <li>연속 고속 분기</li>
+                                        <li>연속 이중 분기</li>
+
+                                        <li class="col-span-1 md:col-span-2 lg:col-span-3 font-semibold text-slate-900 mt-4 mb-1 border-b border-slate-100 pb-1">그 외</li>
+                                        <li>톨게이트 레인 정보 관리</li>
+                                        <li>ETC ILS 관리</li>
+                                    </ul>
+                                </td>
+                            </tr>
+
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-slate-800 bg-slate-50/30 align-top">5_배경 (GIS 편집)</td>
+                                <td class="px-6 py-4">
+                                    <ul class="list-disc list-inside text-sm text-slate-700 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-1">
+                                        <li>폴리곤 → 폴리라인 분할</li>
+                                        <li>폴리곤 → 폴리곤 분할</li>
+                                        <li>폴리곤 → 다중 폴리곤 분할</li>
+                                        <li>폴리곤 → 교차 폴리곤 분할</li>
+                                        <li>보간점을 이용한 폴리곤 분할</li>
+                                        <li>폴리곤 확대 / 축소</li>
+                                        <li>다중 폴리곤 병합</li>
+                                        <li>인접 폴리곤 병합</li>
+                                        <li>멀티라인 생성(화면)</li>
+                                        <li>객체 이동</li>
+                                        <li>객체 회전</li>
+                                        <li>템플릿 폴리라인 파일 업로드</li>
+                                        <li>사각형 폴리라인 생성</li>
+                                        <li>시작점 변경</li>
+                                        <li>객체 회전(기준 선형 맞춰)</li>
+                                        <li>보간점 멀티 삭제</li>
+                                        <li>좌/우 대칭</li>
+                                        <li>상/하 대칭</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-slate-800 bg-slate-50/30 align-top">6_교통정보</td>
+                                <td class="px-6 py-4">
+                                    <ul class="list-disc list-inside text-sm text-slate-700 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-1">
+                                        <li>ICG 정보 보기</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-slate-800 bg-slate-50/30 align-top">7_공통</td>
+                                <td class="px-6 py-4">
+                                    <ul class="list-disc list-inside text-sm text-slate-700 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-1">
+                                        <li>폴리곤 > 폴리라인으로 표시</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: UI Comparison -->
+    <section id="sec-compare" class="content-section fade-in hidden">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">3. UI 화면 (코코넛, 솔에딧)</h1>
+            <p class="text-lg text-slate-600">기존 시스템(코코넛)과 신규 시스템(솔에딧)의 주요 기능별 화면 레이아웃 및 구성을 확인합니다.</p>
+        </header>
+
+        <div class="space-y-16">
+            <!-- 비교 1: 도로 레이어 표출 -->
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 border-b-2 border-teal-500 inline-block pb-1">* 도로 레이어 표출</h2>
+                <div class="grid lg:grid-cols-2 gap-8 items-stretch">
+                    <!-- 코코넛 화면 (Left) -->
+                    <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 flex flex-col h-full">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-3xl">🖥️</span>
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-200">코코넛 (Coconut) - 기존 C++</h3>
+                                <p class="text-slate-400 text-sm">기존 데스크톱(CS) 클라이언트 UI</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 mb-6 bg-slate-900 p-4 rounded-lg border border-slate-700 flex-grow text-sm">
+                            기존 데스크톱 환경입니다. <strong>블랙 배경의 지도</strong>를 기본으로 사용하며, 상단 메뉴바와 툴바, 좌측의 도킹된 범례(Tree 뷰 형식) 패널, 하단의 출력창(로그) 등의 레이아웃으로 구성되어 있습니다.
+                        </p>
+                        <div class="overflow-hidden rounded-xl shadow-lg border border-slate-600 relative group cursor-pointer" onclick="openModal('image_a5a7db.png', '코코넛 도로 레이어 캡쳐 화면')">
+                            <img src="image_a5a7db.png" alt="코코넛 도로 레이어 캡쳐 화면" class="w-full object-cover transition-transform duration-300 group-hover:scale-105 group-hover:opacity-90">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                                <span class="text-white opacity-0 group-hover:opacity-100 font-bold bg-black bg-opacity-60 px-4 py-2 rounded-lg backdrop-blur-sm">확대보기 🔍</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 솔에딧 화면 (Right) -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-3xl">🌐</span>
+                            <div>
+                                <h3 class="text-xl font-bold text-teal-700">솔에딧 (Soledit) - 신규 Web</h3>
+                                <p class="text-slate-500 text-sm">React, OpenLayers, Ant Design 기반 UI</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-700 mb-6 bg-slate-50 p-4 rounded-lg border border-slate-100 flex-grow text-sm">
+                            신규 구축 중인 웹 기반 환경입니다. 밝은 톤의 배경 지도를 사용하며, <strong>우측 사이드 패널</strong>을 통해 지도 레이어 및 스타일을 제어합니다. 상단과 우측 가장자리에 플로팅 툴바가 배치되어 있습니다.
+                        </p>
+                        <div class="overflow-hidden rounded-xl shadow-md border border-slate-300 relative group cursor-pointer" onclick="openModal('image_a5aae0.jpg', '솔에딧 도로 레이어 캡쳐 화면')">
+                            <img src="image_a5aae0.jpg" alt="솔에딧 도로 레이어 캡쳐 화면" class="w-full object-cover transition-transform duration-300 group-hover:scale-105 group-hover:opacity-90">
+                            <div class="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                                <span class="text-slate-800 opacity-0 group-hover:opacity-100 font-bold bg-white bg-opacity-80 px-4 py-2 rounded-lg backdrop-blur-sm shadow">확대보기 🔍</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 비교 2: 노드 속성 표시 -->
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 border-b-2 border-teal-500 inline-block pb-1">비교 2. 객체(노드) 속성 표시 및 편집</h2>
+                <div class="grid lg:grid-cols-2 gap-8 items-stretch">
+                    <!-- 코코넛 화면 (Left) -->
+                    <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 flex flex-col h-full">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-3xl">🖥️</span>
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-200">코코넛 (Coconut) - 팝업 창</h3>
+                                <p class="text-slate-400 text-sm">MFC/C++ 기반 팝업 다이얼로그 UI</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 mb-6 bg-slate-900 p-4 rounded-lg border border-slate-700 flex-grow text-sm">
+                            별도의 <strong>팝업(플로팅) 다이얼로그 창</strong>이 지도 위에 생성되어 객체의 속성을 조회하거나 정보를 편집하는 구조로 되어 있습니다.
+                        </p>
+                        <div class="overflow-hidden rounded-xl shadow-lg border border-slate-600 bg-black flex items-center justify-center relative group cursor-pointer" onclick="openModal('image_a5a6c4.png', '코코넛 노드 속성 표시 캡쳐 화면')">
+                            <img src="image_a5a6c4.png" alt="코코넛 노드 속성 표시 캡쳐 화면" class="w-full object-contain max-h-[400px] transition-transform duration-300 group-hover:scale-105 group-hover:opacity-90">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                                <span class="text-white opacity-0 group-hover:opacity-100 font-bold bg-black bg-opacity-60 px-4 py-2 rounded-lg backdrop-blur-sm">확대보기 🔍</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 솔에딧 화면 (Right) -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-3xl">🌐</span>
+                            <div>
+                                <h3 class="text-xl font-bold text-teal-700">솔에딧 (Soledit) - 사이드 패널</h3>
+                                <p class="text-slate-500 text-sm">React 기반 객체 편집 UI</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-700 mb-6 bg-slate-50 p-4 rounded-lg border border-slate-100 flex-grow text-sm">
+                            객체(노드) 선택 시 <strong>좌측 고정 패널(LNB 영역)</strong>에 속성 정보가 표시되며, 상단의 탭(기본 정보, 노드정보, 하이웨이 등)을 활용하여 정보 항목을 구분하여 제공합니다.
+                        </p>
+                        <div class="overflow-hidden rounded-xl shadow-md border border-slate-300 flex items-center justify-center relative group cursor-pointer" onclick="openModal('image_a59ff7.jpg', '솔에딧 노드 속성 표시 캡쳐 화면')">
+                            <img src="image_a59ff7.jpg" alt="솔에딧 노드 속성 표시 캡쳐 화면" class="w-full object-contain max-h-[400px] transition-transform duration-300 group-hover:scale-105 group-hover:opacity-90">
+                            <div class="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                                <span class="text-slate-800 opacity-0 group-hover:opacity-100 font-bold bg-white bg-opacity-80 px-4 py-2 rounded-lg backdrop-blur-sm shadow">확대보기 🔍</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 비교 1: 도로 레이어 표출 -->
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 border-b-2 border-teal-500 inline-block pb-1">* 도로 레이어 표출</h2>
+                <div class="grid grid-cols-1 gap-8 items-stretch">
+                    <!-- 솔에딧 화면 (Right) -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-3xl">🌐</span>
+                            <div>
+                                <h3 class="text-xl font-bold text-teal-700">솔에딧 (Soledit)</h3>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-8">
+                            <div>
+                                <p class="text-slate-700 mb-6 bg-slate-50 p-4 rounded-lg border border-slate-100 flex-grow text-sm">
+                                    툴박스 메뉴 표출로 도로, 배경등 각 카테고리 별로 메뉴를 분류했으며, 해당 메뉴는 아코디언으로 세부 메뉴를 표출할 수 있습니다.
+                                </p>
+                                <div class="overflow-hidden rounded-xl shadow-md border border-slate-300 relative group cursor-pointer" onclick="openModal('image_menu.png', '메뉴 화면')">
+                                    <img src="image_menu.png" alt="메뉴 화면" class="w-full object-cover transition-transform duration-300 group-hover:scale-105 group-hover:opacity-90">
+                                    <div class="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                                        <span class="text-slate-800 opacity-0 group-hover:opacity-100 font-bold bg-white bg-opacity-80 px-4 py-2 rounded-lg backdrop-blur-sm shadow">확대보기 🔍</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-slate-700 mb-6 bg-slate-50 p-4 rounded-lg border border-slate-100 flex-grow text-sm">
+                                    POI 검색 화면으로 좌측 돋보기 버튼을 클릭 시 접혀있던 POI 검색 메뉴가 표출되며, POI명 검색 후 검색 목록에서 특정 정보를 클릭 시 해당 POI 지점으로 이동합니다.
+                                </p>
+                                <div class="overflow-hidden rounded-xl shadow-md border border-slate-300 relative group cursor-pointer" onclick="openModal('image_search.png', 'POI 검색 화면')">
+                                    <img src="image_search.png" alt="POI 검색 화면" class="w-full object-cover transition-transform duration-300 group-hover:scale-105 group-hover:opacity-90">
+                                    <div class="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                                        <span class="text-slate-800 opacity-0 group-hover:opacity-100 font-bold bg-white bg-opacity-80 px-4 py-2 rounded-lg backdrop-blur-sm shadow">확대보기 🔍</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: Cat 1 -->
+    <section id="sec-cat1" class="content-section fade-in hidden">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">4. [카테고리 1] 보행자</h1>
+            <p class="text-lg text-slate-600">보행자 환경(횡단보도, 육교, 지하보도 등) 데이터를 지도상에 구성합니다.</p>
+        </header>
+
+        <!-- 기타 편집 기능 목록 -->
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-xl text-slate-800 mb-4 border-b border-slate-100 pb-2">보행자 기능 목록</h3>
+            <ul class="grid md:grid-cols-2 lg:grid-cols-3 gap-y-3 gap-x-6 text-sm text-slate-700 list-disc list-inside">
+                <li>이미지 레이어 (Geo-Refer) 추가</li>
+                <li>도보링크 패턴 생성</li>
+                <li>도보 등산로 링크 패턴 속성</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- SECTION 5: Cat 2 -->
+    <section id="sec-cat2" class="content-section fade-in hidden">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">5. [카테고리 2] 도로</h1>
+            <p class="text-lg text-slate-600">코스 및 도로의 메타데이터와 기하(Geometry) 좌표를 정밀하게 관리합니다.</p>
+        </header>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- 코스도로 관리 기능 상세 풀이 -->
+            <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm flex flex-col col-span-1 md:col-span-2">
+                <h4 class="font-bold text-xl text-slate-800 mb-4 border-b pb-2">코스도로 관리 기능</h4>
+                <ul class="grid grid-cols-1 lg:grid-cols-2 gap-y-3 gap-x-6 text-sm text-slate-700">
+                    <li><strong class="text-teal-800">목록 조회:</strong> 전체 코스도로 데이터 리스트를 그리드 형태로 표출 및 검색합니다.</li>
+                    <li><strong class="text-teal-800">신규 생성:</strong> 새로운 코스도로 객체와 메타데이터를 입력하여 생성합니다.</li>
+                    <li><strong class="text-teal-800">정보 수정:</strong> 이미 등록된 코스도로의 속성 및 경로 데이터를 변경합니다.</li>
+                    <li><strong class="text-teal-800">반대 코스 생성:</strong> 선택한 코스도로의 진행 방향과 역방향인 코스를 자동으로 생성합니다.</li>
+                    <li><strong class="text-teal-800">경로 편집:</strong> 코스를 구성하는 세부 경로(링크)를 개별적으로 입력, 수정, 삭제합니다.</li>
+                    <li><strong class="text-teal-800">연결성 검증:</strong> 전후 링크의 통행정보를 기반으로 경로가 끊김 없이 정상적으로 연결되는지 확인합니다.</li>
+                    <li><strong class="text-teal-800">순서(SEQ) 재배치:</strong> 코스 경로를 구성하는 객체들의 진행 순서를 논리적으로 재정렬합니다.</li>
+                    <li><strong class="text-teal-800">경로 시각화 표출:</strong> 구성된 전체 코스 경로의 형상을 지도 상에 하이라이트하여 직관적으로 보여줍니다.</li>
+                    <li><strong class="text-teal-800">해시태그 관리:</strong> 코스도로의 효율적인 검색과 분류를 돕는 해시태그를 입력, 수정, 삭제합니다.</li>
+                </ul>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="overflow-hidden rounded-xl shadow-md border border-slate-200 bg-slate-50 flex items-center justify-center mt-3 p-2 relative group cursor-pointer" onclick="openModal('image_drivingCourse.png', '코스도로 관리 기능(화면)')">
+                        <img src="image_drivingCourse.png" alt="코스도로 관리 기능(화면)" class="max-h-48 object-contain transition-transform duration-300 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                            <span class="text-slate-800 opacity-0 group-hover:opacity-100 font-bold bg-white bg-opacity-80 px-3 py-1 rounded-lg backdrop-blur-sm shadow text-sm">확대보기 🔍</span>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden rounded-xl shadow-md border border-slate-200 bg-slate-50 flex items-center justify-center mt-3 p-2 relative group cursor-pointer" onclick="openModal('image_drivingCourse2.png', '코스도로 관리 기능(화면)')">
+                        <img src="image_drivingCourse2.png" alt="코스도로 관리 기능(화면)" class="max-h-48 object-contain transition-transform duration-300 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                            <span class="text-slate-800 opacity-0 group-hover:opacity-100 font-bold bg-white bg-opacity-80 px-3 py-1 rounded-lg backdrop-blur-sm shadow text-sm">확대보기 🔍</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                <h4 class="font-bold text-xl text-slate-800 mb-3 border-b pb-2">보간점 좌표</h4>
+                <p class="text-sm text-slate-500 mb-4">보간점 객체 선택 및 수치 직접 입력 동기화</p>
+                <ul class="space-y-2 text-sm text-slate-700 list-disc list-inside mb-6">
+                    <li>보간점 객체 생성 및 선택</li>
+                    <li>좌표 입력 후 해당 좌표로 변경</li>
+                </ul>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                <h4 class="font-bold text-xl text-slate-800 mb-3 border-b pb-2">기타 도로 기능</h4>
+                <ul class="grid grid-cols-2 gap-1 text-sm text-slate-700 list-disc list-inside">
+                    <li>레이싱서킷편집</li>
+                    <li>전 방향 좌회전 불가</li>
+                    <li>통행규제 / 통행가능</li>
+                    <li>회전규제 자동설정</li>
+                    <li>형상 복사</li>
+                    <li>멀티 속성</li>
+                    <li>대표(복합) 삭제</li>
+                    <li>노선정보 보기</li>
+                    <li>멀티라인 생성</li>
+                    <li>레인 정보 표시/편집</li>
+                    <li>도로배경 생성</li>
+                    <li>NRG불러오기</li>
+                    <li>복합레인 입력</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 6: Cat 4 -->
+    <section id="sec-cat4" class="content-section fade-in hidden">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">6. [카테고리 4] 랜더링</h1>
+            <p class="text-lg text-slate-600">지도에 렌더링될 시설물(톨게이트, 분기점 등) 데이터를 관리합니다.</p>
+        </header>
+
+        <div class="space-y-6">
+            <!-- 통합분기 관리 -->
+            <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 class="font-bold text-2xl text-slate-800 mb-4 border-b border-slate-200 pb-2">통합분기 관리 (9개의 분기/교차로/ILS 통합 화면)</h3>
+                <ul class="list-disc list-inside text-sm text-slate-700 space-y-2 mb-6 bg-slate-50 p-4 rounded-lg">
+                    <li>특정 조건의 노드에 <strong>9개의 분기 중 필요한 분기 내용을 관리</strong>할 수 있는 기능입니다.</li>
+                    <li>각 분기에는 <strong>패턴(Main)/arrow ID</strong>가 존재하고 이 ID들로 PSD 파일을 확인할 수 있습니다.</li>
+                    <li>패턴(Main)/arrow ID를 조건에 따라 생성할 수 있습니다.</li>
+                    <li><strong>유도선 정보 테이블</strong>에서 유도선의 차선들과 색상을 확인할 수 있습니다.</li>
+                </ul>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-3 py-1 bg-teal-50 border border-teal-200 rounded text-sm shadow-sm text-teal-800 font-semibold">일반 교차로 ILS</span>
+                    <span class="px-3 py-1 bg-teal-50 border border-teal-200 rounded text-sm shadow-sm text-teal-800 font-semibold">JC ILS</span>
+                    <span class="px-3 py-1 bg-teal-50 border border-teal-200 rounded text-sm shadow-sm text-teal-800 font-semibold">일반도로 고속분기</span>
+                    <span class="px-3 py-1 bg-teal-50 border border-teal-200 rounded text-sm shadow-sm text-teal-800 font-semibold">일반도로 연속분기</span>
+                    <span class="px-3 py-1 bg-teal-50 border border-teal-200 rounded text-sm shadow-sm text-teal-800 font-semibold">혼합 분기 ILS</span>
+                    <span class="px-3 py-1 bg-teal-50 border border-teal-200 rounded text-sm shadow-sm text-teal-800 font-semibold">고속 분기 모식도</span>
+                    <span class="px-3 py-1 bg-teal-50 border border-teal-200 rounded text-sm shadow-sm text-teal-800 font-semibold">3D 교차로</span>
+                    <span class="px-3 py-1 bg-teal-50 border border-teal-200 rounded text-sm shadow-sm text-teal-800 font-semibold">연속 고속 분기</span>
+                    <span class="px-3 py-1 bg-teal-50 border border-teal-200 rounded text-sm shadow-sm text-teal-800 font-semibold">연속 이중 분기</span>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow-md border border-slate-200 bg-slate-50 flex items-center justify-center mt-5 p-2 relative group cursor-pointer" onclick="openModal('image_combined.png', '통합분기 관리(화면)')">
+                    <img src="image_combined.png" alt="통합분기 관리(화면)" class="max-h-48 object-contain transition-transform duration-300 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                        <span class="text-slate-800 opacity-0 group-hover:opacity-100 font-bold bg-white bg-opacity-80 px-3 py-1 rounded-lg backdrop-blur-sm shadow text-sm">확대보기 🔍</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- ETC ILS 관리 -->
+                <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xl text-slate-800 mb-4 border-b border-slate-200 pb-2">ETC ILS 관리</h3>
+                    <ul class="list-disc list-inside text-sm text-slate-700 space-y-2">
+                        <li><strong>톨게이트 노드</strong>에서 관리할 수 있습니다.</li>
+                        <li>차선수/위치를 입력/선택해 파일명(=Pattern/Image)에 적용할 수 있습니다.</li>
+                        <li>파일명(=Pattern/Image)을 직접 입력하거나 코드 생성으로 자동 생성할 수 있습니다.</li>
+                        <li>저장 후 <strong>톨게이트 레인정보 모달이 표출</strong>되며, 해당 모달에서 레인정보 변경 시 ETC ILS의 파일명이 동기화되어 변경됩니다.</li>
+                    </ul>
+
+                    <div class="overflow-hidden rounded-xl shadow-md border border-slate-200 bg-slate-50 flex items-center justify-center mt-5 p-2 relative group cursor-pointer" onclick="openModal('image_etc.png', 'ETC ILS 관리(화면)')">
+                        <img src="image_etc.png" alt="ETC ILS 관리(화면)" class="max-h-48 object-contain transition-transform duration-300 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                            <span class="text-slate-800 opacity-0 group-hover:opacity-100 font-bold bg-white bg-opacity-80 px-3 py-1 rounded-lg backdrop-blur-sm shadow text-sm">확대보기 🔍</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 톨게이트 레인정보 관리 -->
+                <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xl text-slate-800 mb-4 border-b border-slate-200 pb-2">톨게이트 레인정보 관리</h3>
+                    <ul class="list-disc list-inside text-sm text-slate-700 space-y-2">
+                        <li><strong>톨게이트 노드</strong>에서 관리할 수 있습니다.</li>
+                        <li>통행정보는 하이패스/축중(일반)/HI축중(전용)/HI축중(겸용)으로 구분 가능하며, 차선 수만큼 선택할 수 있고 <strong>중복 선택은 불가</strong>합니다.</li>
+                        <li><strong>다차로정보</strong>는 통행정보가 하이패스인 경우에만 선택 가능하고, 연속으로 선택된 차로는 차선정보 화면에 <strong>붉은색 박스</strong>로 표현됩니다.</li>
+                        <li>차선정보는 변경된 내용을 <strong>동적으로 반영</strong>합니다.</li>
+                    </ul>
+
+                    <div class="overflow-hidden rounded-xl shadow-md border border-slate-200 bg-slate-50 flex items-center justify-center mt-5 p-2 relative group cursor-pointer" onclick="openModal('image_tgLane.png', '톨게이트 레인정보 관리(화면)')">
+                        <img src="image_tgLane.png" alt="톨게이트 레인정보 관리(화면)" class="max-h-48 object-contain transition-transform duration-300 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                            <span class="text-slate-800 opacity-0 group-hover:opacity-100 font-bold bg-white bg-opacity-80 px-3 py-1 rounded-lg backdrop-blur-sm shadow text-sm">확대보기 🔍</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 7: Cat 5 -->
+    <section id="sec-cat5" class="content-section fade-in hidden">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">7. [카테고리 5] 배경 (GIS 편집)</h1>
+            <p class="text-lg text-slate-600">OpenLayers 벡터 레이어 위에서 기하 연산 및 객체 편집을 수행합니다.</p>
+        </header>
+
+        <div class="space-y-6">
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- 보간점을 이용한 폴리곤 분할 -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                    <h3 class="font-bold text-xl text-slate-800 mb-4 border-b border-slate-100 pb-2">보간점을 이용한 폴리곤 분할</h3>
+                    <p class="text-sm text-slate-600 mb-4">보간점을 선택하여 다각형 객체를 정밀하게 두 개 이상의 객체로 분할할 수 있습니다.</p>
+                    <div class="overflow-hidden rounded-xl shadow-md border border-slate-200 bg-slate-50 flex items-center justify-center p-2 mt-auto relative group cursor-pointer" onclick="openModal('image_a283c7.png', '보간점을 이용한 폴리곤 분할(화면)')">
+                        <img src="image_a283c7.png" alt="보간점을 이용한 폴리곤 분할(화면)" class="max-h-48 object-contain transition-transform duration-300 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                            <span class="text-slate-800 opacity-0 group-hover:opacity-100 font-bold bg-white bg-opacity-80 px-3 py-1 rounded-lg backdrop-blur-sm shadow text-sm">확대보기 🔍</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 폴리곤 멀티라인 생성 -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xl text-slate-800 mb-4 border-b border-slate-100 pb-2">폴리곤 멀티라인 생성</h3>
+                    <ul class="list-disc list-inside text-sm text-slate-700 space-y-2">
+                        <li>폴리곤의 <strong>보간점을 선택 후 보간점 사이의 선형에 멀티라인을 생성</strong>할 수 있습니다.</li>
+                        <li>이 기능은 [2_도로] 카테고리의 멀티라인 생성과 <strong>동일한 로직 및 기능</strong>을 공유합니다.</li>
+                    </ul>
+                    <div class="overflow-hidden rounded-xl shadow-md border border-slate-200 bg-slate-50 flex items-center justify-center p-2 mt-auto relative group cursor-pointer" onclick="openModal('image_multilane.png', '폴리곤 멀티레인 생성(화면)')">
+                        <img src="image_multilane.png" alt="폴리곤 멀티레인 생성(화면)" class="max-h-48 object-contain transition-transform duration-300 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300">
+                            <span class="text-slate-800 opacity-0 group-hover:opacity-100 font-bold bg-white bg-opacity-80 px-3 py-1 rounded-lg backdrop-blur-sm shadow text-sm">확대보기 🔍</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 기타 편집 기능 목록 -->
+            <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 class="font-bold text-xl text-slate-800 mb-4 border-b border-slate-100 pb-2">기타 배경 편집 기능 목록</h3>
+                <ul class="grid md:grid-cols-2 lg:grid-cols-3 gap-y-3 gap-x-6 text-sm text-slate-700 list-disc list-inside">
+                    <li>폴리곤 → 폴리라인 분할</li>
+                    <li>폴리곤 → 폴리곤 분할</li>
+                    <li>폴리곤 → 다중 폴리곤 분할</li>
+                    <li>폴리곤 → 교차 폴리곤 분할</li>
+                    <li>폴리곤 확대 / 축소</li>
+                    <li>다중 폴리곤 병합</li>
+                    <li>인접 폴리곤 병합</li>
+                    <li>멀티라인 생성(화면)</li>
+                    <li>객체 이동</li>
+                    <li>객체 회전</li>
+                    <li>템플릿 폴리라인 파일 업로드</li>
+                    <li>사각형 폴리라인 생성</li>
+                    <li>시작점 변경</li>
+                    <li>객체 회전(기준 선형에 맞춰 회전)</li>
+                    <li>보간점 멀티 삭제</li>
+                    <li>좌/우 대칭</li>
+                    <li>상/하 대칭</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 8: Cat 6 -->
+    <section id="sec-cat6" class="content-section fade-in hidden">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">8. [카테고리 6] 교통정보</h1>
+            <p class="text-lg text-slate-600">도로 네트워크 위에 실시간 교통 흐름, 사고 정보 등을 매핑합니다.</p>
+        </header>
+
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg shadow-sm mb-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 text-2xl">⚠️</div>
+                <div class="ml-3">
+                    <h3 class="text-xl font-bold text-yellow-800 mb-2">데이터 스펙 정의 필요</h3>
+                    <p class="text-yellow-700">관리 대상 기기 및 표출 방식에 대한 정의가 누락되어 있습니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 9: Architecture -->
+    <section id="sec-arch" class="content-section fade-in hidden">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">9. 시스템 아키텍처</h1>
+            <p class="text-lg text-slate-600">SPA 기반의 Web 구조로 전환하는 흐름도를 나타냅니다.</p>
+        </header>
+        <div class="bg-slate-800 p-8 rounded-2xl text-white shadow-xl">
+            <h3 class="text-xl font-bold mb-6 text-teal-400">데이터 처리 파이프라인 요약</h3>
+            <p class="leading-relaxed text-slate-300 text-lg space-y-3">
+                <span class="block"><span class="text-white font-semibold">1. Legacy DB</span> <span class="text-sm text-slate-400">(고유 GRS 좌표 데이터)</span></span>
+                <span class="block pl-4 text-teal-500">&darr;</span>
+                <span class="block"><span class="text-white font-semibold">2. SQL Server DB</span> <span class="text-sm text-slate-400">(모든 CRUD는 GP_RTN_COMMON_CROSS_SAVE 등 Stored Procedure로 처리)</span></span>
+                <span class="block pl-4 text-teal-500">&darr;</span>
+                <span class="block"><span class="text-white font-semibold">3. Spring Boot API</span> <span class="text-sm text-slate-400">(GeoJSON Payload 생성)</span></span>
+                <span class="block pl-4 text-teal-500">&darr;</span>
+                <span class="block"><span class="text-white font-semibold">4. React + OpenLayers</span> <span class="text-sm text-slate-400">(데이터 로딩 시 EPSG:3857로 동적 변환하여 화면 표출)</span></span>
+            </p>
+        </div>
+    </section>
+
+    <!-- SECTION 10: Risk Analysis -->
+    <section id="sec-risk" class="content-section fade-in hidden pb-20">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">10. 복잡도 분석</h1>
+            <p class="text-lg text-slate-600">집중해야 할 주요 기술적 난관과 소요 자원을 평가합니다.</p>
+        </header>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-10 mb-8">
+            <div class="chart-container">
+                <canvas id="complexityChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Image Fullscreen Modal -->
+<div id="imageModal" class="fixed inset-0 z-[100] hidden bg-black bg-opacity-90 flex items-center justify-center p-4 transition-opacity duration-300" onclick="if(event.target === this) closeModal()">
+    <button onclick="closeModal()" class="absolute top-6 right-6 text-white hover:text-teal-300 focus:outline-none z-50 transition-colors">
+        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    </button>
+    <div class="relative max-w-[95vw] max-h-[95vh] flex items-center justify-center">
+        <img id="modalImage" src="" alt="Fullscreen Image" class="max-w-full max-h-[95vh] object-contain rounded shadow-2xl pointer-events-none">
+    </div>
+</div>
+
+<script>
+    // Image Modal Logic
+    function openModal(src, alt) {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        modalImg.src = src;
+        modalImg.alt = alt;
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent background scroll
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('imageModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = ''; // Restore scroll
+    }
+
+    // Close modal on Escape key press
+    window.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    // Navigation Logic
+    function navigate(sectionId) {
+        document.querySelectorAll('.nav-item').forEach(el => {
+            el.classList.remove('active', 'bg-slate-700', 'text-white', 'border-l-4', 'border-teal-300');
+        });
+        event.currentTarget.classList.add('active', 'bg-slate-700', 'text-white', 'border-l-4', 'border-teal-300');
+
+        document.querySelectorAll('.content-section').forEach(el => {
+            el.classList.add('hidden');
+            el.classList.remove('block');
+        });
+
+        const target = document.getElementById(sectionId);
+        target.classList.remove('hidden');
+        target.classList.add('block');
+
+        document.querySelector('main').scrollTop = 0;
+
+        if (sectionId === 'sec-overview') renderDoughnutChart();
+        else if (sectionId === 'sec-risk') renderBarChart();
+    }
+
+    // Charts Data
+    const techStackData = { labels: ['Frontend', 'Backend', 'DB'], data: [50, 35, 15], colors: ['#0d9488', '#0ea5e9', '#64748b'] };
+    const complexityData = {
+        labels: ['브라우저단 폴리곤 편집', '통합분기 동적 UI', 'API/소켓 연동', '좌표계 변환'],
+        data: [9.5, 7.0, 8.5, 6.5],
+        colors: ['#0d9488', '#0369a1', '#d97706', '#475569'],
+        details: ["Turf.js 연동 복잡성", "Ant Design 규칙", "연동 일정 리스크", "대량 데이터 변환"]
+    };
+    let chartInstances = {};
+
+    function renderDoughnutChart() {
+        const ctx = document.getElementById('techStackChart').getContext('2d');
+        if (chartInstances['techStack']) chartInstances['techStack'].destroy();
+        chartInstances['techStack'] = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: techStackData.labels,
+                datasets: [{ data: techStackData.data, backgroundColor: techStackData.colors, borderWidth: 0, hoverOffset: 6 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: '60%' }
+        });
+    }
+
+    function renderBarChart() {
+        const ctx = document.getElementById('complexityChart').getContext('2d');
+        if (chartInstances['complexity']) chartInstances['complexity'].destroy();
+        chartInstances['complexity'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: complexityData.labels,
+                datasets: [{
+                    label: '리스크 점수',
+                    data: complexityData.data,
+                    backgroundColor: complexityData.colors.map(c => c + 'B3'),
+                    borderColor: complexityData.colors,
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                scales: { x: { beginAtZero: true, max: 10 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderDoughnutChart();
+    });
+</script>
+</body>
+</html>
